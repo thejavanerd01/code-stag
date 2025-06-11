@@ -1,0 +1,117 @@
+{
+  "name": "generic_workflow",
+  "version": 1,
+  "tasks": [
+    {
+      "taskReferenceName": "collect_user_data",
+      "taskName": "collect_user_data",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "12345"
+      },
+      "outputMappings": {
+        "userData": "$.result"
+      },
+      "dependsOn": []
+    },
+    {
+      "taskReferenceName": "log_user",
+      "taskName": "custom_log",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "message": "User data collected for ${collect_user_data.output.userData.email}"
+      },
+      "outputMappings": {
+        "logResult": "$.result"
+      },
+      "dependsOn": ["collect_user_data"]
+    },
+    {
+      "taskReferenceName": "decision_notify",
+      "type": "DECISION",
+      "inputParameters": {
+        "userData": "${collect_user_data.output.userData}"
+      },
+      "decisionCases": {
+        "email_preferred": [
+          {
+            "taskReferenceName": "send_email",
+            "taskName": "send_email",
+            "type": "SIMPLE",
+            "inputMappings": {
+              "email": "${decision_notify.input.userData.email}"
+            },
+            "outputMappings": {
+              "result": "$.result"
+            },
+            "dependsOn": ["decision_notify"]
+          }
+        ],
+        "sms_preferred": [
+          {
+            "taskReferenceName": "send_sms",
+            "taskName": "send_sms",
+            "type": "SIMPLE",
+            "inputMappings": {
+              "phone": "${decision_notify.input.userData.phone}"
+            },
+            "outputMappings": {
+              "result": "$.result"
+            },
+            "dependsOn": ["decision_notify"]
+          }
+        ]
+      },
+      "defaultCase": [],
+      "dependsOn": ["log_user"]
+    },
+    {
+      "type": "PARALLEL",
+      "taskReferenceName": "parallel_tasks",
+      "tasks": [
+        {
+          "taskReferenceName": "http_request",
+          "taskName": "custom_http",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "url": "https://api.example.com/notify",
+            "method": "POST"
+          },
+          "outputMappings": {
+            "httpResult": "$.result"
+          },
+          "dependsOn": ["collect_user_data"]
+        },
+        {
+          "taskReferenceName": "send_email_parallel",
+          "taskName": "send_email",
+          "type": "SIMPLE",
+          "inputMappings": {
+            "email": "${collect_user_data.output.userData.email}"
+          },
+          "outputMappings": {
+            "result": "$.result"
+          },
+          "dependsOn": ["collect_user_data"]
+        }
+      ],
+      "dependsOn": ["collect_user_data"]
+    },
+    {
+      "taskReferenceName": "finalize",
+      "taskName": "finalize",
+      "type": "SIMPLE",
+      "inputMappings": {
+        "logResult": "${log_user.output.logResult}",
+        "httpResult": "${http_request.output.httpResult}",
+        "emailResult": "${send_email.output.result}",
+        "smsResult": "${send_sms.output.result}",
+        "parallelEmailResult": "${send_email_parallel.output.result}"
+      },
+      "outputMappings": {
+        "result": "$.result"
+      },
+      "dependsOn": ["decision_notify", "parallel_tasks", "log_user"]
+    }
+  ]
+}

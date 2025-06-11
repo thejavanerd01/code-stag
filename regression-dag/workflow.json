@@ -1,0 +1,87 @@
+{
+  "name": "user_workflow",
+  "version": 1,
+  "tasks": [
+    {
+      "taskReferenceName": "register",
+      "taskName": "register",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userInput": {
+          "username": "john_doe",
+          "email": "john@example.com"
+        }
+      },
+      "outputMappings": {
+        "registrationResult": "$.result"
+      },
+      "dependsOn": []
+    },
+    {
+      "taskReferenceName": "check_registration",
+      "type": "DECISION",
+      "inputParameters": {
+        "registrationResult": "${register.output.registrationResult}"
+      },
+      "decisionCases": {
+        "success": [
+          {
+            "taskReferenceName": "profile_info",
+            "taskName": "profile_info",
+            "type": "SIMPLE",
+            "inputMappings": {
+              "userId": "${register.output.registrationResult.userId}",
+              "username": "${register.output.registrationResult.userInput.username}"
+            },
+            "outputMappings": {
+              "profileData": "$.result"
+            },
+            "dependsOn": ["check_registration"]
+          },
+          {
+            "taskReferenceName": "save_preference",
+            "taskName": "save_preference",
+            "type": "SIMPLE",
+            "inputMappings": {
+              "userId": "${profile_info.output.profileData.userId}",
+              "profile": "${profile_info.output.profileData.profile}"
+            },
+            "outputMappings": {
+              "preferenceData": "$.result"
+            },
+            "dependsOn": ["profile_info"]
+          },
+          {
+            "taskReferenceName": "upload_status",
+            "taskName": "upload_status",
+            "type": "SIMPLE",
+            "inputMappings": {
+              "userId": "${save_preference.output.preferenceData.userId}",
+              "preference": "${save_preference.output.preferenceData.preference}"
+            },
+            "outputMappings": {
+              "statusResult": "$.result"
+            },
+            "dependsOn": ["save_preference"]
+          }
+        ],
+        "failure": [
+          {
+            "taskReferenceName": "handle_failure",
+            "taskName": "handle_failure",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "error": "${register.output.registrationResult.error}"
+            },
+            "outputMappings": {
+              "failureResult": "$.result"
+            },
+            "dependsOn": ["check_registration"]
+          }
+        ]
+      },
+      "defaultCase": [],
+      "dependsOn": ["register"]
+    }
+  ]
+}

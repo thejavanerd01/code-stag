@@ -1,0 +1,26 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.thejavanerd</groupId>
+        <artifactId>code-stag</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>snowflake-poc</artifactId>
+    <name>Archetype - snowflake-poc</name>
+    <url>http://maven.apache.org</url>
+    <dependencies>
+        <!-- Snowflake JDBC Driver -->
+        <dependency>
+            <groupId>net.snowflake</groupId>
+            <artifactId>snowflake-jdbc</artifactId>
+            <version>3.13.33</version> <!-- Use the latest version -->
+        </dependency>
+        <!-- Snowpark Java Library -->
+        <dependency>
+            <groupId>com.snowflake</groupId>
+            <artifactId>snowpark</artifactId>
+            <version>1.9.0</version> <!-- Use the latest version -->
+        </dependency>
+    </dependencies>
+</project>
